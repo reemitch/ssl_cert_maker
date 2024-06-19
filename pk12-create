@@ -1,0 +1,72 @@
+01 function create_config {
+02     {
+03     echo "HOME            = ."
+04     echo "RANDFILE        = $ENV::HOME/.rnd"
+05 
+06     ...
+07     cut for better readability
+08     ...
+09 
+10     echo "oid_section     = new_oids"
+11     echo 'subjectKeyIdentifier=hash'
+12     echo 'authorityKeyIdentifier=keyid,issuer'
+13     echo 'proxyCertInfo=critical,language:id-ppl-anyLanguage,pathlen:3,policy:foo'
+14     } > "$config"
+15 }
+16 
+17 function create_root_ca {
+18     local keysize=$1
+19     local country=$2
+20     local org=$3
+21     local name=$4
+22     local days=$5
+23     local certfile=$6
+24     local keyfile=$7
+25     openssl req -newkey rsa:$keysize -x509 -days $days -keyout $keyfile -nodes -out $certfile -config $config -subj /C=$country/O=$org/CN=$name
+26     return $?
+27 }
+28 
+29 function create_crl {
+30     local cakey=$1
+31     local cacert=$2
+32     local crlfile=$3
+33     openssl ca -gencrl -config $config -keyfile $cakey -cert $cacert -out $crlfile
+34 }
+35 
+36 function create_client_req {
+37     local keysize=$1
+38     local country=$2
+39     local org=$3
+40     local name=$4
+41     local keyfile=$5
+42     local reqfile=$6
+43     openssl req -new -newkey rsa:$keysize -nodes -keyout $keyfile -out $reqfile -config $config -subj /C=$country/O=$org/CN=$name
+44 }
+45 
+46 function sign_client_req {
+47     local clientreq=$1
+48     local days=$2
+49     local cacert=$3
+50     local cakey=$4
+51     local clientcert=$5
+52     openssl x509 -req -days $days -CA $cacert -CAkey $cakey -CAcreateserial -in $clientreq -out $clientcert
+53 }
+54 
+55 function revoke_client_cert {
+56     local clientcert=$1
+57     local cakey=$2
+58     local cacert=$3
+59     openssl ca -revoke $clientcert -keyfile $cakey -cert $cacert -config $config
+60 }
+61 
+62 function get_cacountry {
+63     cacountry="DC"
+64 }
+65 
+66 function get_caorg {
+67     caorg="Dummy org"
+68 }
+69 
+70 function get_caname {
+71     caname="Dummy CA"
+72 }
