@@ -11,7 +11,7 @@ organizationalunit="Web Encryption Services"
 email=reemitch@reemitch.link
 
 #Optional
-password=intCApwd
+password=$(some_password)
  
 if [ -z "$domain" ]
 then
@@ -32,18 +32,20 @@ openssl genrsa -out /root/interm/private/$domain.key 2048
 #openssl rsa -in $domain.key -passin pass:$password -out $domain.key
  
 #Create the request
+
 echo "Creating CSR"
+
 #openssl req -config /root/interm/openssl.cnf -new -key $domain.key -out $domain.csr -passin pass:$password \
 #-subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
-openssl req -config /root/interm/openssl.cnf -new -key /root/interm/private/$domain.key -sha256 -out $domain.csr -passin pass:$password \
+openssl req -config /root/interm/openssl.cnf -new -key /set/private/key/folder/$domain.key -sha256 -out $domain.csr -passin pass:$password \
 -subj "/C=$country/ST=$state/L=$locality/O=$organization/OU=$organizationalunit/CN=$commonname/emailAddress=$email"
 
 openssl ca -config /root/interm/openssl.cnf -extensions server_cert -days 375 -notext -md sha256 \
    -in $domain.csr -out ./$domain.crt -passin pass:$password
 
-openssl pkcs12 -export -out ./$domain.p12 -in ./$domain.crt -inkey /root/interm/private/$domain.key -passin pass:root -passout pass:root
+openssl pkcs12 -export -out ./$domain.p12 -in ./$domain.crt -inkey /set/private/key/folder/$domain.key -passin pass:root -passout pass:root
 
-mv ./$domain.csr /root/interm/csr/
+mv ./$domain.csr /set/csr/folder/csr/
 
 echo "---------------------------"
 echo "----Below is your pkcs12---"
