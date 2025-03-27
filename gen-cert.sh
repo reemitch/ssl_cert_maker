@@ -64,7 +64,9 @@ echo
 echo "---------------------------"
 echo "--And your Certificate-----"
 echo "---------------------------"
-echo
-cat $domain.crt
+
+openssl x509 -noout -text \
+      -in ./$domain.crt
+
 exit 0
 
